@@ -5,4 +5,4 @@
 | JJ | juanj.martinezg96@gmail.com | SpahishHans | DNS, Deployment |
 | Adriancho | adrian.aguilera |    | DB |
 | Daniel |    |    |    |
-| Sebastian |    |    |    |
+| Sebastian |    jsportillam@gmail.com|locopower111    |Autenticacion, publicaciones    |
