@@ -1,18 +1,15 @@
-version: '3.8'
-
 services:
-  
-  # frontend:
-  #   build: ./frnt
-  #   container_name: twatter_frnt
-  #   ports:
-  #     - "10311:3000"
-  #   networks:
-  #     - app_net
-  #   environment:
-  #     GATEWAY_URL: "http://frontend-gateway:8080"
-  #   depends_on:
-  #     - frontend-gateway
+  frontend:
+    image: spanishhans/twatter_front:0.1.1
+    container_name: twatter_frnt
+    ports:
+      - "10311:3000"
+    networks:
+      - app_net
+    environment:
+      GATEWAY_URL: "http://frontend-gateway:8080"
+    # depends_on:
+    #   - frontend-gateway
 
   # frontend-gateway:
   #   image: nginx:latest
@@ -20,13 +17,13 @@ services:
   #   ports:
   #     - "10312:8080"
   #   volumes:
-  #     - ./nginx/frontend-gateway.conf:/etc/nginx/nginx.conf
+  #     - ./nginx_confs:/etc/nginx
   #   networks:
   #     - app_net
-  #   depends_on:
-  #     - posts
-  #     - auth
-  #     - interactions
+    # depends_on:
+    #   - posts
+    #   - auth
+    #   - interactions
 
   # posts:
   #   build: ./pubs
