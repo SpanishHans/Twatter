@@ -1,88 +1,91 @@
 version: '3.8'
 
 services:
-  # Frontend - User Interface
-  frontend:
-    build: ./frnt
-    ports:
-      - "3000:3000"
-    networks:
-      - app_net
-    environment:
-      GATEWAY_URL: "http://frontend-gateway:8080"
-    depends_on:
-      - frontend-gateway
+  
+  # frontend:
+  #   build: ./frnt
+  #   container_name: twatter_frnt
+  #   ports:
+  #     - "10311:3000"
+  #   networks:
+  #     - app_net
+  #   environment:
+  #     GATEWAY_URL: "http://frontend-gateway:8080"
+  #   depends_on:
+  #     - frontend-gateway
 
-  # Frontend Gateway - Routes to services
-  frontend-gateway:
-    image: nginx:latest
-    ports:
-      - "8080:8080"
-    volumes:
-      - ./nginx/frontend-gateway.conf:/etc/nginx/nginx.conf
-    networks:
-      - app_net
-    depends_on:
-      - posts
-      - auth
-      - interactions
+  # frontend-gateway:
+  #   image: nginx:latest
+  #   container_name: twatter_nginx
+  #   ports:
+  #     - "10312:8080"
+  #   volumes:
+  #     - ./nginx/frontend-gateway.conf:/etc/nginx/nginx.conf
+  #   networks:
+  #     - app_net
+  #   depends_on:
+  #     - posts
+  #     - auth
+  #     - interactions
 
-  # Posts Service
-  posts:
-    build: ./pubs
-    networks:
-      - app_net
-    environment:
-      BACK_GATEWAY_URL: "http://back-gateway:9000"
-    depends_on:
-      - back-gateway
+  # posts:
+  #   build: ./pubs
+  #   container_name: twatter_pubs
+  #   networks:
+  #     - app_net
+  #   environment:
+  #     DATABASE_URL: "postgresql://${DB_USER}:${DB_PASS}@db:5432/${DB_NAME}"
+  #   depends_on:
+  #     - db
+  
+  # auth:
+  #   build: ./auth
+  #   container_name: twatter_auth
+  #   networks:
+  #     - app_net
+  #   environment:
+  #     DATABASE_URL: "postgresql://${DB_USER}:${DB_PASS}@db:5432/${DB_NAME}"
+  #   depends_on:
+  #     - db
 
-  # Auth Service
-  auth:
-    build: ./auth
-    networks:
-      - app_net
-    environment:
-      BACK_GATEWAY_URL: "http://back-gateway:9000"
-    depends_on:
-      - back-gateway
-
-  # Interactions Service
-  interactions:
-    build: ./ints
-    networks:
-      - app_net
-    environment:
-      BACK_GATEWAY_URL: "http://back-gateway:9000"
-    depends_on:
-      - back-gateway
-
-  # Back Gateway - Handles DB access
-  back-gateway:
-    build: ./db_gateway
-    networks:
-      - app_net
-    environment:
-      DATABASE_URL: "postgresql://${DB_USER}:${DB_PASS}@db:5432/twitter_db"
-    depends_on:
-      - db
-
-  # PostgreSQL Database
+  # interactions:
+  #   build: ./ints
+  #   container_name: twatter_ints
+  #   networks:
+  #     - app_net
+  #   environment:
+  #     DATABASE_URL: "postgresql://${DB_USER}:${DB_PASS}@db:5432/${DB_NAME}"
+  #   depends_on:
+  #     - db
+  
   db:
     image: postgres:16
+    env_file: ./.env
+    container_name: twatter_db
     networks:
       - app_net
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASS}
-      POSTGRES_DB: twitter_db
+      POSTGRES_DB: ${DB_NAME}
     volumes:
-      - ./pg_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
-      interval: 5s
-      retries: 5
-      timeout: 3s
+      - ./postgresql:/var/lib/postgresql/data
+      
+  pgadmin:
+    image: dpage/pgadmin4
+    env_file: ./.env
+    container_name: twatter_pgadmin
+    ports:
+      - "10313:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${DB_MAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${DB_PASS}
+    depends_on:
+      - db
+    networks:
+      - app_net
+    volumes:
+      - ./pgadmin:/var/lib/pgadmin
 
 networks:
   app_net:
