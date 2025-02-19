@@ -4,6 +4,7 @@ services:
   
   # frontend:
   #   build: ./frnt
+  #   container_name: twatter_frnt
   #   ports:
   #     - "10311:3000"
   #   networks:
@@ -13,9 +14,9 @@ services:
   #   depends_on:
   #     - frontend-gateway
 
-  
   # frontend-gateway:
   #   image: nginx:latest
+  #   container_name: twatter_nginx
   #   ports:
   #     - "10312:8080"
   #   volumes:
@@ -27,55 +28,53 @@ services:
   #     - auth
   #     - interactions
 
-  
   # posts:
   #   build: ./pubs
+  #   container_name: twatter_pubs
   #   networks:
   #     - app_net
   #   environment:
-  #     DATABASE_URL: "postgresql://${DB_USER}:${DB_PASS}@db:5432/twitter_db"
+  #     DATABASE_URL: "postgresql://${DB_USER}:${DB_PASS}@db:5432/${DB_NAME}"
   #   depends_on:
   #     - db
-
   
   # auth:
   #   build: ./auth
+  #   container_name: twatter_auth
   #   networks:
   #     - app_net
   #   environment:
-  #     DATABASE_URL: "postgresql://${DB_USER}:${DB_PASS}@db:5432/twitter_db"
+  #     DATABASE_URL: "postgresql://${DB_USER}:${DB_PASS}@db:5432/${DB_NAME}"
   #   depends_on:
   #     - db
 
-  
   # interactions:
   #   build: ./ints
+  #   container_name: twatter_ints
   #   networks:
   #     - app_net
   #   environment:
-  #     DATABASE_URL: "postgresql://${DB_USER}:${DB_PASS}@db:5432/twitter_db"
+  #     DATABASE_URL: "postgresql://${DB_USER}:${DB_PASS}@db:5432/${DB_NAME}"
   #   depends_on:
   #     - db
-
   
   db:
     image: postgres:16
+    env_file: ./.env
+    container_name: twatter_db
     networks:
       - app_net
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASS}
-      POSTGRES_DB: twitter_db
+      POSTGRES_DB: ${DB_NAME}
     volumes:
-      - ./pg_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
-      interval: 5s
-      retries: 5
-      timeout: 3s
+      - ./postgresql:/var/lib/postgresql/data
       
   pgadmin:
     image: dpage/pgadmin4
+    env_file: ./.env
+    container_name: twatter_pgadmin
     ports:
       - "10313:80"
     environment:
@@ -86,7 +85,7 @@ services:
     networks:
       - app_net
     volumes:
-      - ./pgadmin_data:/var/lib/pgadmin
+      - ./pgadmin:/var/lib/pgadmin
 
 networks:
   app_net:
