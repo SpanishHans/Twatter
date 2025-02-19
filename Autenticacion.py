@@ -1,29 +1,27 @@
+from flask import Flask, request, jsonify
 import sqlite3
 import hashlib
 import re
 from datetime import datetime
 
+app = Flask(__name__)
 DB_NAME = "usuarios.db"
 
-# Conectar a la base de datos y crear la tabla si no existe
 def inicializar_db():
     with sqlite3.connect(DB_NAME) as conn:
         cursor = conn.cursor()
-        cursor.execute('''
+        cursor.execute(''' 
             CREATE TABLE IF NOT EXISTS USUARIOS (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 nombre_usuario TEXT UNIQUE NOT NULL,
                 correo TEXT UNIQUE NOT NULL,
                 contrasena_hash TEXT NOT NULL,
-                foto_perfil TEXT,
-                biografia TEXT,
-                fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                biografia TEXT,  -- Agregado campo de biografía
+                fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
         conn.commit()
 
-# Validar la seguridad de la contraseña
 def validar_contraseña(contraseña):
     if len(contraseña) < 8:
         return "La contraseña debe tener al menos 8 caracteres."
@@ -35,83 +33,73 @@ def validar_contraseña(contraseña):
         return "La contraseña debe contener al menos un carácter especial."
     return None
 
-# Hash de la contraseña
 def hash_contraseña(contraseña):
     return hashlib.sha256(contraseña.encode()).hexdigest()
 
-# Verificar si el usuario existe
 def usuario_existe(usuario):
     with sqlite3.connect(DB_NAME) as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT id FROM USUARIOS WHERE nombre_usuario = ?", (usuario,))
         return cursor.fetchone() is not None
 
-# Registrar un usuario
+@app.route("/registro", methods=["POST"])
 def registrar_usuario():
-    print("Registro de usuario")
-    nombre_usuario = input("Ingrese su nombre de usuario: ")
+    data = request.json
+    nombre_usuario = data.get("nombre_usuario")
+    correo = data.get("correo")
+    contraseña = data.get("contrasena")
+    biografia = data.get("biografia")  # Obtener biografía
+    
     if usuario_existe(nombre_usuario):
-        print("Ese nombre de usuario ya está en uso.")
-        return
-
-    correo = input("Ingrese su correo electrónico: ")
-    while True:
-        contraseña = input("Ingrese su contraseña: ")
-        error = validar_contraseña(contraseña)
-        if error:
-            print(f"Error: {error}")
-            continue
-        confirmar_contraseña = input("Confirme su contraseña: ")
-        if contraseña != confirmar_contraseña:
-            print("Las contraseñas no coinciden.")
-        else:
-            break
-
+        return jsonify({"error": "Ese nombre de usuario ya está en uso."}), 400
+    
+    error = validar_contraseña(contraseña)
+    if error:
+        return jsonify({"error": error}), 400
+    
     contrasena_hash = hash_contraseña(contraseña)
     fecha_creacion = datetime.now()
-
+    
     with sqlite3.connect(DB_NAME) as conn:
         cursor = conn.cursor()
         cursor.execute('''
-            INSERT INTO USUARIOS (nombre_usuario, correo, contrasena_hash, fecha_creacion)
-            VALUES (?, ?, ?, ?)
-        ''', (nombre_usuario, correo, contrasena_hash, fecha_creacion))
+            INSERT INTO USUARIOS (nombre_usuario, correo, contrasena_hash, biografia, fecha_creacion)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (nombre_usuario, correo, contrasena_hash, biografia, fecha_creacion))
         conn.commit()
-    print("Registro exitoso!")
+    
+    return jsonify({"mensaje": "Registro exitoso!"}), 201
 
-# Iniciar sesión
+@app.route("/login", methods=["POST"])
 def iniciar_sesion():
-    print("\nInicio de sesión")
-    usuario = input("Ingrese su nombre de usuario: ")
-    contraseña = input("Ingrese su contraseña: ")
+    data = request.json
+    usuario = data.get("nombre_usuario")
+    contraseña = data.get("contrasena")
     contraseña_cifrada = hash_contraseña(contraseña)
-
+    
     with sqlite3.connect(DB_NAME) as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM USUARIOS WHERE nombre_usuario = ? AND contrasena_hash = ?", (usuario, contraseña_cifrada))
+        cursor.execute("SELECT nombre_usuario, biografia FROM USUARIOS WHERE nombre_usuario = ? AND contrasena_hash = ?", (usuario, contraseña_cifrada))
         usuario_encontrado = cursor.fetchone()
-
+    
     if usuario_encontrado:
-        print(f"\nBienvenido, {usuario}")
+        return jsonify({"mensaje": f"Bienvenido, {usuario_encontrado[0]}", "biografia": usuario_encontrado[1]}), 200
     else:
-        print("Usuario o contraseña incorrectos.")
+        return jsonify({"error": "Usuario o contraseña incorrectos."}), 401
 
-# Menú principal
-inicializar_db()
-while True:
-    print("\nMenú Principal")
-    print("1. Registrar usuario")
-    print("2. Iniciar sesión")
-    print("3. Salir")
-    
-    opcion = input("Seleccione una opción: ")
-    
-    if opcion == "1":
-        registrar_usuario()
-    elif opcion == "2":
-        iniciar_sesion()
-    elif opcion == "3":
-        print("\nSaliendo del sistema...")
-        break
+@app.route("/verificar_usuario", methods=["GET"])
+def verificar_usuario():
+    nombre_usuario = request.args.get("nombre_usuario")
+    if usuario_existe(nombre_usuario):
+        return jsonify({"existe": True}), 200
     else:
-        print("\nOpción inválida, intente de nuevo.")
+        return jsonify({"existe": False}), 404
+    
+@app.route("/", methods=["GET"])
+def home():
+    return jsonify({"routes": ["/registro", "/login", "/verificar_usuario"]}), 200
+
+
+if __name__ == "__main__":
+    inicializar_db()
+    app.run(host="0.0.0.0", port=5001, debug=True)
