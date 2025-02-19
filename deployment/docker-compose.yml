@@ -1,6 +1,6 @@
 services:
   frontend:
-    image: spanishhans/twatter_front:0.1.1
+    image: spanishhans/twatter_frnt:0.1.1
     container_name: twatter_frnt
     ports:
       - "10311:3000"
