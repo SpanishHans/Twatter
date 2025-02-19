@@ -46,6 +46,10 @@ def post_register():
             connection.commit()
             logging.info(f"||post_register|| Usuario '{nombre_usuario}' registrado exitosamente.")
 
+            # Generar token al registrarse
+            token = generate_token(user_id=cursor.lastrowid)  # Usar el id del nuevo usuario
+            return jsonify({"message": "Usuario registrado exitosamente!", "token": token}), 201
+
     except Exception as e:
         logging.error(f"||post_register|| Error en la base de datos durante el registro: {e}")
         return jsonify({"error": "Problema en la base de datos."}), 500
@@ -54,7 +58,6 @@ def post_register():
         if connection:
             connection.close()  # Asegurarse de que la conexión se cierre
 
-    return jsonify({"message": "Usuario registrado exitosamente!"}), 201
 
 # Endpoint de inicio de sesión
 @app.route('/login', methods=['POST'])
@@ -93,3 +96,4 @@ def post_login():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
