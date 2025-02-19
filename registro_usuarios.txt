@@ -1,4 +1,0 @@
-nombre: Juan Sebastian
-usuario: Juan123
-correo: jsportilla@gmail.com
-contraseña: Hola123456.
