@@ -1,0 +1,53 @@
+services:
+  # frontend:
+  #   build: ./frontend
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     POSTS_API_URL: "http://posts:8000"
+  #     AUTH_API_URL: "http://auth:8000"
+  #     INTERACTIONS_API_URL: "http://interactions:8000"
+  #   depends_on:
+  #     - posts
+  #     - auth
+  #     - interactions
+
+  posts:
+    build: ./pubs
+    env_file: .env
+    networks:
+      - app_net 
+    environment:
+      DATABASE_URL: "postgresql://${DB_USER}:${DB_PASS}@db:5432/tweets"
+    depends_on:
+      - db
+
+  auth:
+    build: ./auth
+    networks:
+      - app_net 
+    depends_on:
+      - db
+
+  interactions:
+    build: ./ints
+    networks:
+      - app_net 
+    depends_on:
+      - db
+
+  db:
+    image: postgres:16
+    networks:
+      - app_net 
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: twitter_db
+    volumes:
+      - ./pg_data:/var/lib/postgresql/data
+
+networks:
+  app_net:
+    driver: bridge
+    name: twatter_network
