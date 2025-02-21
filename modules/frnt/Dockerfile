@@ -5,8 +5,10 @@ WORKDIR /app
 
 # Install dependencies and build
 COPY ./app/package*.json ./
-RUN npm install
-COPY /app .
+# RUN npm install
+
+RUN npm ci --omit=dev
+COPY ./app .
 RUN npm run build
 
 # Stage 2: Run the app
