@@ -1,4 +1,3 @@
-// components/Button.tsx
 import React from "react";
 
 type ButtonProps = {
@@ -6,30 +5,42 @@ type ButtonProps = {
   variant?: "blue" | "white" | "outline";
   onClick?: () => void;
   href?: string;
-  className?: string; // Accepts additional classes
+  className?: string;
+  icon?: React.ReactNode; // Optional icon
 };
 
-const Button: React.FC<ButtonProps> = ({ children, variant = "blue", onClick, href, className = "" }) => {
-  const baseStyles = "inline-flex justify-center items-center rounded-full px-6 py-2 transition font-semibold";
+const Button: React.FC<ButtonProps> = ({ children, variant = "blue", onClick, href, className = "", icon }) => {
+  
+  const baseStyles = "relative inline-flex rounded-full px-6 py-2 transition font-semibold w-full ";
+  
   const variantStyles = {
-    blue: "bg-[#1D9BF0] text-white hover:bg-[#1A8CD8]",
-    white: "bg-white text-black hover:bg-gray-200",
-    outline: "border-2 border-[#1D9BF0] text-[#1D9BF0] hover:bg-[#E8F5FE]",
+    blue: "text-center items-center justify-center bg-[#1D9BF0] text-white hover:bg-[#1A8CD8]",
+    white: "text-center items-center justify-center bg-white text-black hover:bg-gray-200",
+    outline: "text-center items-center justify-center border-2 border-[#1D9BF0] text-[#1D9BF0] hover:bg-[#E8F5FE]",
+    noborder: "text-white hover:text-black hover:bg-white",
+
   };
 
   const combinedStyles = `${baseStyles} ${variantStyles[variant]} ${className}`;
 
-  if (href) {
-    return (
-      <a href={href} className={combinedStyles}>
-        {children}
-      </a>
-    );
-  }
+  const content = (
+    <>
+      {/* Icon (only visible if there's enough space) */}
+      {icon && <span className="inline absolute left-3">{icon}</span>}
 
-  return (
+      {/* Centered text */}
+      <span className="flex-grow">{children}</span>
+    </>
+  );
+
+  // Render <a> if href exists, otherwise render <button>
+  return href ? (
+    <a href={href} className={combinedStyles}>
+      {content}
+    </a>
+  ) : (
     <button onClick={onClick} className={combinedStyles}>
-      {children}
+      {content}
     </button>
   );
 };
