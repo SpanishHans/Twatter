@@ -2,15 +2,18 @@ import Button from "@/components/Button";
 import Footer from "@/components/Footer";
 import Logo from "@/components/Logo";
 
+import { FaGoogle } from "react-icons/fa";
+import { AiFillApple } from "react-icons/ai";
+
 export default function Home() {
   return (
     <div className="flex flex-col bg-caret-blue-950 min-h-screen">
-      <main className="flex flex-col items-center justify-center bg-black min-h-full grow">
+      <main className="flex flex-col items-center justify-center min-h-full grow">
         
           <div className="flex flex-row min-h-full grow">
 
             <div className="hidden sm:flex min-w-[50vw] items-center justify-center bg-white min-h-full grow">
-              <Logo />
+              <Logo width={300} height={300}/>
             </div>
             
             <div className="flex md:min-w-[50vw] w-full">
@@ -33,7 +36,7 @@ export default function Home() {
                       className="mb-4 p-3 rounded-md bg-gray-800 text-white"
                     />
   
-                    <Button variant="blue" className="mb-4" href="/register">
+                    <Button variant="blue" href="/dashboard">
                       Inciar Sesión
                     </Button>
                   </form>
@@ -45,8 +48,8 @@ export default function Home() {
                   </div>
                   
                   <div className="flex flex-row mb-4 gap-2">
-                    <Button variant="white" className="w-1/2">Google</Button>
-                    <Button variant="white" className="w-1/2">Apple</Button>
+                    <Button variant="white" icon={<FaGoogle className="w-5 h-5" />} className="w-1/2">Google</Button>
+                    <Button variant="white" icon={<AiFillApple className="w-7 h-7" />} className="w-1/2">Apple</Button>
                   </div>
   
                   <div className="text-xs text-gray-500">
