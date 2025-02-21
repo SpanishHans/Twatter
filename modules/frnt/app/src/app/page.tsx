@@ -22,6 +22,8 @@ export default function Home() {
                 
                 <div>
                   <TrendingCarousel />
+
+
                   <h1 className="text-4xl font-bold my-8">Únete ahora.</h1>
                 </div>
                   
