@@ -14,6 +14,7 @@ export default function Home() {
 
             <div className="hidden sm:flex min-w-[50vw] items-center justify-center bg-white min-h-full grow">
 
+
               <Logo width={300} height={300}/>
             </div>
             

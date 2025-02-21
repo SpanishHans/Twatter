@@ -19,6 +19,7 @@ const Button: React.FC<ButtonProps> = ({ children, variant = "blue", onClick, hr
     outline: "text-center items-center justify-center border-2 border-[#1D9BF0] text-[#1D9BF0] hover:bg-[#E8F5FE]",
     noborder: "text-white hover:text-black hover:bg-white",
 
+
   };
 
   const combinedStyles = `${baseStyles} ${variantStyles[variant]} ${className}`;
@@ -45,4 +46,6 @@ const Button: React.FC<ButtonProps> = ({ children, variant = "blue", onClick, hr
   );
 };
 
+
 export default Button;
+
