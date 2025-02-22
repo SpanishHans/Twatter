@@ -1,0 +1,10 @@
+<script>start("c:\\Users\\jport\\Desktop\\twatter\\twatter\\servicio-autenticacion\\src\\");</script>
+<script>onHasParentDirectory();</script>
+<script>addRow("__pycache__","__pycache__",1,0,"0 B",1740076605,"2/20/25, 1:36:45 PM");</script>
+<script>addRow("config","config",1,0,"0 B",1740076605,"2/20/25, 1:36:45 PM");</script>
+<script>addRow("esquemas","esquemas",1,0,"0 B",1740076605,"2/20/25, 1:36:45 PM");</script>
+<script>addRow("modelos","modelos",1,0,"0 B",1740076605,"2/20/25, 1:36:45 PM");</script>
+<script>addRow("rutas","rutas",1,0,"0 B",1740076605,"2/20/25, 1:36:45 PM");</script>
+<script>addRow("servicios","servicios",1,0,"0 B",1740076605,"2/20/25, 1:36:45 PM");</script>
+<script>addRow("__init__.py","__init__.py",0,0,"0 B",1740076605,"2/20/25, 1:36:45 PM");</script>
+<script>addRow("main.py","main.py",0,737,"737 B",1740076605,"2/20/25, 1:36:45 PM");</script>
