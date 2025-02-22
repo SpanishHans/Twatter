@@ -1,0 +1,7 @@
+<script>start("c:\\Users\\jport\\Desktop\\twatter\\twatter\\servicio-autenticacion\\venv\\");</script>
+<script>onHasParentDirectory();</script>
+<script>addRow("Include","Include",1,0,"0 B",1740076606,"2/20/25, 1:36:46 PM");</script>
+<script>addRow("Lib","Lib",1,0,"0 B",1739934462,"2/18/25, 10:07:42 PM");</script>
+<script>addRow("Scripts","Scripts",1,0,"0 B",1740076806,"2/20/25, 1:40:06 PM");</script>
+<script>addRow(".gitignore",".gitignore",0,71,"71 B",1740076606,"2/20/25, 1:36:46 PM");</script>
+<script>addRow("pyvenv.cfg","pyvenv.cfg",0,355,"355 B",1740076606,"2/20/25, 1:36:46 PM");</script>
