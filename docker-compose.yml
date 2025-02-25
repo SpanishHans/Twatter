@@ -1,0 +1,91 @@
+services:
+  frontend:
+    build: ./frnt
+    container_name: twatter_frnt
+    ports:
+      - "10311:3000"
+    networks:
+      - app_net
+
+  pubs:
+    build: ./pubs
+    container_name: twatter_pubs
+    networks:
+      - app_net
+    ports:
+      - "10312:8002"
+    environment:
+      DATABASE_URL: "postgresql://${DB_USER}:${DB_PASS}@db:5432/${DB_NAME}"
+    depends_on:
+      db:
+        condition: service_healthy
+  
+  auth:
+    build: ./auth
+    container_name: twatter_auth
+    networks:
+      - app_net
+    ports:
+      - "10313:8000"
+    environment:
+      DATABASE_URL: "postgresql://${DB_USER}:${DB_PASS}@db:5432/${DB_NAME}"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  interactions:
+    build: ./ints
+    container_name: twatter_ints
+    networks:
+      - app_net
+    ports:
+      - "10314:8001"
+    environment:
+      DATABASE_URL: "postgresql://${DB_USER}:${DB_PASS}@db:5432/${DB_NAME}"
+    depends_on:
+      db:
+        condition: service_healthy
+        
+  pgadmin:
+    image: dpage/pgadmin4
+    env_file: ./.env
+    container_name: twatter_pgadmin
+    networks:
+      - app_net
+    ports:
+      - "10315:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${DB_MAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${DB_PASS}
+    volumes:
+      - pgadmin:/var/lib/pgadmin
+    depends_on:
+      db:
+        condition: service_healthy
+  
+  db:
+    image: postgres:16
+    env_file: ./.env
+    container_name: twatter_db
+    networks:
+      - app_net
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - postgresql:/var/lib/postgresql/data
+    healthcheck:
+        test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+        interval: 5s
+        timeout: 3s
+        retries: 5
+
+networks:
+  app_net:
+    driver: bridge
+    name: twatter_network
+
+volumes:
+  postgresql:
+  pgadmin:
