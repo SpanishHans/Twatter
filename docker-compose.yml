@@ -1,6 +1,10 @@
 services:
-  frontend:
-    build: ./frnt
+  frnt:
+    build:
+      context: ./frnt
+      args:
+        VERSION: ${VERSION}
+    image: spanishhans/twatter_frnt:${VERSION}
     container_name: twatter_frnt
     ports:
       - "10311:3000"
@@ -8,7 +12,11 @@ services:
       - app_net
 
   pubs:
-    build: ./pubs
+    build:
+      context: ./pubs
+      args:
+        VERSION: ${VERSION}
+    image: spanishhans/twatter_pubs:${VERSION}
     container_name: twatter_pubs
     networks:
       - app_net
@@ -21,7 +29,11 @@ services:
         condition: service_healthy
   
   auth:
-    build: ./auth
+    build:
+      context: ./auth
+      args:
+        VERSION: ${VERSION}
+    image: spanishhans/twatter_auth:${VERSION}
     container_name: twatter_auth
     networks:
       - app_net
@@ -33,8 +45,12 @@ services:
       db:
         condition: service_healthy
 
-  interactions:
-    build: ./ints
+  ints:
+    build:
+      context: ./ints
+      args:
+        VERSION: ${VERSION}
+    image: spanishhans/twatter_ints:${VERSION}
     container_name: twatter_ints
     networks:
       - app_net
