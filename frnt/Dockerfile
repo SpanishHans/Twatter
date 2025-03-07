@@ -3,13 +3,16 @@ FROM node:20 AS builder
 
 WORKDIR /app
 
-# Install dependencies and build
-COPY ./app/package*.json ./
-# RUN npm install
+# Install pnpm manually
+RUN npm install -g pnpm
 
-RUN npm ci --omit=dev
+# Copy dependencies and install only production dependencies
+COPY ./app/pnpm-lock.yaml ./app/package.json ./
+RUN pnpm install --frozen-lockfile --prod
+
+# Copy the rest of the app and build
 COPY ./app .
-RUN npm run build
+RUN pnpm build
 
 # Stage 2: Run the app
 FROM node:20 AS runner
