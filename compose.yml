@@ -7,7 +7,7 @@ services:
     image: spanishhans/twatter_frnt:${VERSION}
     container_name: twatter_frnt
     ports:
-      - "10311:3000"
+      - "${FRNT_PORT}:3000"
     networks:
       - app_net
 
@@ -21,7 +21,7 @@ services:
     networks:
       - app_net
     ports:
-      - "10312:8002"
+      - "${PUBS_PORT}:8002"
     environment:
       DATABASE_URL: "postgresql://${DB_USER}:${DB_PASS}@db:5432/${DB_NAME}"
     depends_on:
@@ -38,7 +38,7 @@ services:
     networks:
       - app_net
     ports:
-      - "10313:8000"
+      - "${AUTH_PORT}:8000"
     environment:
       DATABASE_URL: "postgresql://${DB_USER}:${DB_PASS}@db:5432/${DB_NAME}"
     depends_on:
@@ -55,7 +55,7 @@ services:
     networks:
       - app_net
     ports:
-      - "10314:8001"
+      - "${INTS_PORT}:8001"
     environment:
       DATABASE_URL: "postgresql://${DB_USER}:${DB_PASS}@db:5432/${DB_NAME}"
     depends_on:
