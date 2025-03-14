@@ -5,6 +5,7 @@ services:
       args:
         VERSION: ${VERSION}
     image: spanishhans/twatter_frnt:${VERSION}
+    env_file: ./.env
     container_name: twatter_frnt
     ports:
       - "${FRNT_PORT}:3000"
@@ -17,11 +18,12 @@ services:
       args:
         VERSION: ${VERSION}
     image: spanishhans/twatter_pubs:${VERSION}
+    env_file: ./.env
     container_name: twatter_pubs
     networks:
       - app_net
     ports:
-      - "${PUBS_PORT}:8002"
+      - "${PUBS_PORT}:8000"
     environment:
       DATABASE_URL: "postgresql://${DB_USER}:${DB_PASS}@db:5432/${DB_NAME}"
     depends_on:
@@ -34,6 +36,7 @@ services:
       args:
         VERSION: ${VERSION}
     image: spanishhans/twatter_auth:${VERSION}
+    env_file: ./.env
     container_name: twatter_auth
     networks:
       - app_net
@@ -51,11 +54,12 @@ services:
       args:
         VERSION: ${VERSION}
     image: spanishhans/twatter_ints:${VERSION}
+    env_file: ./.env
     container_name: twatter_ints
     networks:
       - app_net
     ports:
-      - "${INTS_PORT}:8001"
+      - "${INTS_PORT}:8000"
     environment:
       DATABASE_URL: "postgresql://${DB_USER}:${DB_PASS}@db:5432/${DB_NAME}"
     depends_on:

@@ -1,14 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy.orm import Session
-from typing import List
+
 import requests
 
-from conf.database import get_db
-from servicios.like_service import LikeService
-from servicios.comentario_service import ComentarioService
-from esquemas.interacciones import LikeCrear, LikeRespuesta, ComentarioCrear, ComentarioRespuesta
+from modules.db_engine import get_db
+from modules.schema_like import LikeService
+from modules.schema_comm import ComentarioService
+from modules.schema_api import LikeTwatt, Comment_Twatt, LikeRespuesta, ComentarioRespuesta
 
-router = APIRouter(prefix="/interacciones", tags=["Interacciones"])
+router = APIRouter(tags=["Interacciones"])
 
 def validar_token_y_obtener_usuario(token: str):
     # Validar token con servicio de autenticación
@@ -35,9 +35,13 @@ def validar_token_y_obtener_usuario(token: str):
     usuario_data = respuesta_usuario.json()[0]
     return usuario_data['id']
 
-@router.post("/likes", response_model=LikeRespuesta)
+
+
+
+
+@router.post("/like", response_model=LikeRespuesta)
 def dar_like(
-    like: LikeCrear, 
+    like: LikeTwatt, 
     token: str = Header(...), 
     db: Session = Depends(get_db)
 ):
@@ -46,11 +50,11 @@ def dar_like(
     nuevo_like = LikeService.dar_like(db, id_usuario, like.id_publicacion)
     
     if not nuevo_like:
-        raise HTTPException(status_code=400, detail="Like ya existe")
+        raise HTTPException(status_code=400, detail="El usuario ya dió like")
     
     return nuevo_like
 
-@router.delete("/likes/{id_publicacion}")
+@router.delete("/{id_publicacion}")
 def quitar_like(
     id_publicacion: int, 
     token: str = Header(...), 
@@ -63,16 +67,20 @@ def quitar_like(
     
     return {"message": "Like eliminado"}
 
-@router.get("/likes/{id_publicacion}")
+@router.get("/{id_publicacion}")
 def obtener_likes(
     id_publicacion: int, 
     db: Session = Depends(get_db)
 ):
     return LikeService.obtener_likes_publicacion(db, id_publicacion)
 
-@router.post("/comentarios", response_model=ComentarioRespuesta)
+
+
+
+
+@router.post("/comentar", response_model=ComentarioRespuesta)
 def crear_comentario(
-    comentario: ComentarioCrear, 
+    comentario: Comment_Twatt, 
     token: str = Header(...), 
     db: Session = Depends(get_db)
 ):
@@ -87,7 +95,7 @@ def crear_comentario(
     
     return nuevo_comentario
 
-@router.delete("/comentarios/{id_comentario}")
+@router.delete("/{id_comentario}")
 def eliminar_comentario(
     id_comentario: int, 
     token: str = Header(...), 
@@ -100,7 +108,7 @@ def eliminar_comentario(
     
     return {"message": "Comentario eliminado"}
 
-@router.get("/comentarios/{id_publicacion}")
+@router.get("/{id_publicacion}")
 def obtener_comentarios(
     id_publicacion: int, 
     db: Session = Depends(get_db)

@@ -1,8 +1,11 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Boolean
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey
 from sqlalchemy.sql import func
+from sqlalchemy.ext.declarative import declarative_base
 
-from conf.database import Base
+from modules.db_engine import engine
+
+Base = declarative_base()
+Base.metadata.create_all(bind=engine)
 
 class Usuario(Base):
     __tablename__ = "usuarios"

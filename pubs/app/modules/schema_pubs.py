@@ -2,7 +2,7 @@ import requests
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from fastapi import HTTPException
-from modelos.modelos import Publicacion, ArchivoMultimedia
+from modules.schema_db import Publicacion, ArchivoMultimedia
 
 class PublicacionService:
     @staticmethod

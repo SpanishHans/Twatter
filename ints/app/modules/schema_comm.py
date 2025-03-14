@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
-from typing import List, Optional
+from typing import List
 
-from modelos.modelos import Comentario
+from modules.schema_db import Comentario
 
 class ComentarioService:
     @staticmethod
