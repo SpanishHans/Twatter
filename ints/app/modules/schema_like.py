@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
-from modules.schema_db import MeGusta
+from modules.models import MeGusta
 
 class LikeService:
     @staticmethod

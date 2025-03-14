@@ -7,7 +7,7 @@ from modules.db_engine import engine
 Base = declarative_base()
 Base.metadata.create_all(bind=engine)
 
-class User_template(Base):
+class User_On_DB(Base):
     __tablename__ = "usuarios"
 
     id = Column(Integer, primary_key=True, index=True)

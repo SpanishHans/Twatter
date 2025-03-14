@@ -1,92 +1,76 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, HTTPException, Depends
+from fastapi import Response
 from sqlalchemy.orm import Session
-# from typing import List
 
+from modules.models import User_On_DB
 from modules.db_engine import get_db
-from modules.schema_db import User_template
-from modules.schema_api import UsuarioNuevo, UsuarioLogin, Token
-from modules.schema_auth import AuthService
+from modules.schemas import UsuarioNuevo, UsuarioLogin
+from modules.auth_service import AuthService
+
 
 router = APIRouter(tags=["Autenticación"])
 
-@router.post("/registro", response_model=Token)
-def registrar_usuario(usuario: UsuarioNuevo, db: Session = Depends(get_db)):
-    # Verificar si el usuario ya existe
-    usuario_existente = db.query(User_template).filter(
-        (User_template.nombre_usuario == usuario.nombre_usuario) |
-        (User_template.correo == usuario.correo)
-    ).first()
 
-    if usuario_existente:
+
+
+@router.post("/registro")
+def register(user_data: UsuarioNuevo, db: Session = Depends(get_db)):
+    # Check if username or email already exists
+    if db.query(User_On_DB).filter_by(nombre_usuario=user_data.nombre_usuario).first():
         raise HTTPException(status_code=400, detail="Usuario ya existe")
+    if db.query(User_On_DB).filter_by(correo=user_data.correo).first():
+        raise HTTPException(status_code=400, detail="Correo ya usado")
+    
+    # Hash password
+    hashed_password = AuthService.hash_password(user_data.contrasena.get_secret_value())
 
-    # Hashear contraseña
-    hashed_password = AuthService.crear_hash_contrasena(usuario.contrasena.get_secret_value())
-
-    # Crear nuevo usuario
-    nuevo_usuario = User_template(
-        nombre_usuario=usuario.nombre_usuario,
-        correo=usuario.correo,
+    # Create new user
+    new_user = User_On_DB(
+        nombre_usuario=user_data.nombre_usuario,
+        correo=user_data.correo,
         contrasena_hash=hashed_password,
-        foto_perfil=usuario.foto_perfil,
-        biografia=usuario.biografia
+        foto_perfil=user_data.foto_perfil,
+        biografia=user_data.biografia
     )
 
-    db.add(nuevo_usuario)
+    db.add(new_user)
     db.commit()
-    db.refresh(nuevo_usuario)
+    db.refresh(new_user)
 
-    # Generar token
-    access_token = AuthService.crear_token_acceso(
-        data={"sub": nuevo_usuario.nombre_usuario}
+    return {"message": "Registro correcto"}
+
+
+
+
+
+@router.post("/login")
+def login(user_data: UsuarioLogin, response: Response, db: Session = Depends(get_db)):
+    # Get user by username
+    user = db.query(User_On_DB).filter_by(nombre_usuario=user_data.nombre_usuario).first()
+    
+    if not user or not AuthService.verify_password(user_data.contrasena.get_secret_value(), user.contrasena_hash):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    # Generate JWT token
+    token = AuthService.generate_token(user.id, user.nombre_usuario)
+
+    # Set HTTP-only cookie
+    response.set_cookie(
+        key="access_token",
+        value=token,
+        httponly=True,  # JavaScript can't access
+        secure=False,  # Use only in HTTPS
+        samesite="Lax",  # Helps prevent CSRF
+        max_age=60 * 60 * 24  # 1-day expiration
     )
 
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {"message": "Login correcto"}
 
 
 
 
 
-@router.post("/login", response_model=Token)
-def login(datos_login: UsuarioLogin, db: Session = Depends(get_db)):
-    usuario = AuthService.autenticar_usuario(db, datos_login.nombre_usuario, datos_login.contrasena.get_secret_value())
-    if not usuario:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Credenciales incorrectas"
-        )
-
-    access_token = AuthService.crear_token_acceso(
-        data={"sub": usuario.nombre_usuario}
-    )
-
-    return {"token_access": access_token, "token_type": "bearer"}
-
-
-
-
-
-
-# @router.post("/validar-token")
-# def validar_token(token: dict):
-#     payload = AuthService.verificar_token(token["token"])
-#     if not payload:
-#         raise HTTPException(status_code=401, detail="Token inválido")
-#     return {"valido": True, "usuario": payload.get("sub")}
-
-
-
-
-
-
-# @router.post("/usuarios", response_model=List[UsuarioRespuesta])
-# def buscar_usuarios(
-#     busqueda: UsuarioBusqueda,
-#     db: Session = Depends(get_db)
-# ):
-#     if busqueda.nombre_usuario:
-#         usuario = db.query(User_template).filter(User_template.nombre_usuario == busqueda.nombre_usuario).first()
-#         if usuario:
-#             return [usuario]
-#         return []
-#     return db.query(User_template).offset(busqueda.skip).limit(busqueda.limit).all()
+@router.post("/logout")
+def logout(response: Response):
+    response.delete_cookie("access_token")
+    return {"message": "Log out correcto"}

@@ -1,46 +1,27 @@
-from fastapi import APIRouter, Depends, HTTPException, Header
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from typing import List
 import requests
 
 from modules.db_engine import get_db
 from modules.schema_pubs import PublicacionService
-from modules.schema_api import PublicacionCrear, PublicacionRespuesta
+from modules.schemas import PublicacionCrear, PublicacionRespuesta
+from modules.auth import get_current_user
 
 router = APIRouter(tags=["Publicaciones"])
 
 @router.post("/twatt", response_model=PublicacionRespuesta)
 def crear_twatt(
         publicacion: PublicacionCrear,
-        token: str = Header(...),
+        request: Request,
         db: Session = Depends(get_db)
     ):
 
     # Validar token con servicio de autenticación
     try:
         # Validar token en el puerto 8000
-        respuesta_auth = requests.post(
-            "http://localhost:8000/api/v1/auth/validar-token",
-            json={"token": token}
-        )
-
-        if respuesta_auth.status_code != 200:
-            raise HTTPException(status_code=401, detail="Token inválido")
-
-        datos_token = respuesta_auth.json()
-        usuario = datos_token.get("usuario")
-
-        # Obtener información del usuario desde el servicio de autenticación
-        respuesta_usuario = requests.post(
-            "http://localhost:8000/api/v1/auth/usuarios",
-            json={"nombre_usuario": usuario}
-        )
-
-        if respuesta_usuario.status_code != 200:
-            raise HTTPException(status_code=404, detail="Usuario no encontrado")
-
-        usuario_data = respuesta_usuario.json()[0]
-        id_usuario = usuario_data['id']
+        user_data = get_current_user(request)
+        id_usuario = user_data["user_id"]
 
         # Crear publicación
         nueva_publicacion = PublicacionService.crear_publicacion(
@@ -80,34 +61,14 @@ def obtener_twatt(
 @router.delete("/{publicacion_id}")
 def eliminar_twatt(
     publicacion_id: int,
-    token: str = Header(...),
+    request: Request,
     db: Session = Depends(get_db)
 ):
     # Validar token con servicio de autenticación
     try:
         # Validar token en el puerto 8000
-        respuesta_auth = requests.post(
-            "http://localhost:8000/api/v1/auth/validar-token",
-            json={"token": token}
-        )
-
-        if respuesta_auth.status_code != 200:
-            raise HTTPException(status_code=401, detail="Token inválido")
-
-        datos_token = respuesta_auth.json()
-        usuario = datos_token.get("usuario")
-
-        # Obtener información del usuario desde el servicio de autenticación
-        respuesta_usuario = requests.post(
-            "http://localhost:8000/api/v1/auth/usuarios",
-            json={"nombre_usuario": usuario}
-        )
-
-        if respuesta_usuario.status_code != 200:
-            raise HTTPException(status_code=404, detail="Usuario no encontrado")
-
-        usuario_data = respuesta_usuario.json()[0]
-        id_usuario = usuario_data['id']
+        user_data = get_current_user(request)
+        id_usuario = user_data["user_id"]
 
         # Eliminar publicación
         PublicacionService.eliminar_publicacion(db, publicacion_id, id_usuario)
