@@ -4,7 +4,7 @@ from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from typing import Optional
 
-from modelos.modelos import Usuario
+from modules.schema_db import User_template
 
 # Configuración de seguridad
 SECRET_KEY = "tu-clave-secreta-muy-segura"  # Cambiar en producción
@@ -38,8 +38,8 @@ class AuthService:
             return None
 
     @staticmethod
-    def autenticar_usuario(db: Session, username: str, password: str) -> Optional[Usuario]:
-        usuario = db.query(Usuario).filter(Usuario.nombre_usuario == username).first()
+    def autenticar_usuario(db: Session, username: str, password: str) -> Optional[User_template]:
+        usuario = db.query(User_template).filter(User_template.nombre_usuario == username).first()
         if not usuario:
             return None
         if not AuthService.verificar_contrasena(password, usuario.contrasena_hash):
