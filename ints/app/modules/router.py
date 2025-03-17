@@ -6,8 +6,8 @@ import requests
 from shared.db.db_engine import get_db
 from shared.auth.auth import get_current_user
 
-from modules.like_service import LikeService
-from modules.comm_service import CommentService
+from modules.service_like import LikeService
+from modules.service_comm import CommentService
 from modules.schemas import LikeTwatt, Comment_Twatt, LikeRespuesta, ComentarioRespuesta
 
 

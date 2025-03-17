@@ -6,7 +6,7 @@ import requests
 from shared.db.db_engine import get_db
 from shared.auth.auth import get_current_user
 
-from modules.twatt_service import TwattService
+from modules.service_twatt import TwattService
 from modules.schemas import PublicacionCrear, PublicacionRespuesta
 
 router = APIRouter(tags=["Publicaciones"])

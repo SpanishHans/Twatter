@@ -1,7 +1,7 @@
 import requests
 from fastapi import HTTPException, Request
 
-AUTH_SERVICE_URL = "http://auth:8000/verify-token"
+AUTH_SERVICE_URL = "http://auth:8000/verificar-token"
 
 def get_current_user(request: Request):
     """Calls external auth service to verify user based on cookies."""

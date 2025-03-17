@@ -8,7 +8,7 @@ from shared.models.user import User_on_db
 from shared.db.db_engine import get_db
 
 from modules.schemas import NewUser, UserLogin
-from modules.auth_service import AuthService
+from modules.service_auth import AuthService
 
 router = APIRouter(tags=["Autenticación"])
 
@@ -82,7 +82,7 @@ async def login(
 from fastapi import Request
 from fastapi.responses import JSONResponse
 
-@router.get("/verify-token")
+@router.get("/verificar-token")
 async def verify_token_endpoint(request: Request):
     token = AuthService.extract_token_from_request(request)
     user = AuthService.verify_token(token)
