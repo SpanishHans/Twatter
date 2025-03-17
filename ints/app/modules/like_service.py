@@ -1,21 +1,21 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
-from modules.models import MeGusta
+from shared.models.like import Like
 
 class LikeService:
     @staticmethod
-    def dar_like(db: Session, id_usuario: int, id_publicacion: int) -> Optional[MeGusta]:
+    def dar_like(db: Session, id_usuario: int, id_publicacion: int) -> Optional[Like]:
         # Verificar si ya existe el like
-        like_existente = db.query(MeGusta).filter(
-            MeGusta.id_usuario == id_usuario,
-            MeGusta.id_publicacion == id_publicacion
+        like_existente = db.query(Like).filter(
+            Like.id_usuario == id_usuario,
+            Like.id_publicacion == id_publicacion
         ).first()
         
         if like_existente:
             return None
         
-        nuevo_like = MeGusta(
+        nuevo_like = Like(
             id_usuario=id_usuario,
             id_publicacion=id_publicacion
         )
@@ -28,9 +28,9 @@ class LikeService:
 
     @staticmethod
     def quitar_like(db: Session, id_usuario: int, id_publicacion: int) -> bool:
-        like = db.query(MeGusta).filter(
-            MeGusta.id_usuario == id_usuario,
-            MeGusta.id_publicacion == id_publicacion
+        like = db.query(Like).filter(
+            Like.id_usuario == id_usuario,
+            Like.id_publicacion == id_publicacion
         ).first()
         
         if like:
@@ -40,5 +40,5 @@ class LikeService:
         return False
 
     @staticmethod
-    def obtener_likes_publicacion(db: Session, id_publicacion: int) -> List[MeGusta]:
-        return db.query(MeGusta).filter(MeGusta.id_publicacion == id_publicacion).all()
+    def obtener_likes_publicacion(db: Session, id_publicacion: int) -> List[Like]:
+        return db.query(Like).filter(Like.id_publicacion == id_publicacion).all()

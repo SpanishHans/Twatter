@@ -12,27 +12,10 @@ services:
     networks:
       - app_net
 
-  pubs:
-    build:
-      context: ./pubs
-      args:
-        VERSION: ${VERSION}
-    image: spanishhans/twatter_pubs:${VERSION}
-    env_file: ./.env
-    container_name: twatter_pubs
-    networks:
-      - app_net
-    ports:
-      - "${PUBS_PORT}:8000"
-    environment:
-      DATABASE_URL: "postgresql://${DB_USER}:${DB_PASS}@db:5432/${DB_NAME}"
-    depends_on:
-      db:
-        condition: service_healthy
-
   auth:
     build:
-      context: ./auth
+      context: .
+      dockerfile: ./auth/Dockerfile
       args:
         VERSION: ${VERSION}
     image: spanishhans/twatter_auth:${VERSION}
@@ -43,14 +26,33 @@ services:
     ports:
       - "${AUTH_PORT}:8000"
     environment:
-      DATABASE_URL: "postgresql://${DB_USER}:${DB_PASS}@db:5432/${DB_NAME}"
+      DATABASE_URL: "postgresql+asyncpg://${DB_USER}:${DB_PASS}@db:5432/${DB_NAME}"
     depends_on:
       db:
         condition: service_healthy
 
+  pubs:
+    build:
+      context: .
+      dockerfile: ./pubs/Dockerfile
+      args:
+        VERSION: ${VERSION}
+    image: spanishhans/twatter_pubs:${VERSION}
+    env_file: ./.env
+    container_name: twatter_pubs
+    networks:
+      - app_net
+    ports:
+      - "${PUBS_PORT}:8000"
+    environment:
+      DATABASE_URL: "postgresql+asyncpg://${DB_USER}:${DB_PASS}@db:5432/${DB_NAME}"
+    depends_on:
+      - auth
+
   ints:
     build:
-      context: ./ints
+      context: .
+      dockerfile: ./ints/Dockerfile
       args:
         VERSION: ${VERSION}
     image: spanishhans/twatter_ints:${VERSION}
@@ -61,10 +63,9 @@ services:
     ports:
       - "${INTS_PORT}:8000"
     environment:
-      DATABASE_URL: "postgresql://${DB_USER}:${DB_PASS}@db:5432/${DB_NAME}"
+      DATABASE_URL: "postgresql+asyncpg://${DB_USER}:${DB_PASS}@db:5432/${DB_NAME}"
     depends_on:
-      db:
-        condition: service_healthy
+      - auth
 
   pgadmin:
     image: dpage/pgadmin4

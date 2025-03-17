@@ -3,10 +3,11 @@ from sqlalchemy.orm import Session
 from typing import List
 import requests
 
-from modules.db_engine import get_db
-from modules.schema_pubs import PublicacionService
+from shared.db.db_engine import get_db
+from shared.auth.auth import get_current_user
+
+from modules.twatt_service import TwattService
 from modules.schemas import PublicacionCrear, PublicacionRespuesta
-from modules.auth import get_current_user
 
 router = APIRouter(tags=["Publicaciones"])
 
@@ -24,7 +25,7 @@ def crear_twatt(
         id_usuario = user_data["user_id"]
 
         # Crear publicación
-        nueva_publicacion = PublicacionService.crear_publicacion(
+        nueva_publicacion = TwattService.crear_publicacion(
             db=db,
             id_usuario=id_usuario,
             contenido=publicacion.contenido,
@@ -49,14 +50,14 @@ def obtener_twatts(
     limit: int = 100,
     db: Session = Depends(get_db)
 ):
-    return PublicacionService.obtener_publicaciones(db, skip, limit)
+    return TwattService.obtener_publicaciones(db, skip, limit)
 
 @router.get("/{publicacion_id}", response_model=PublicacionRespuesta)
 def obtener_twatt(
     publicacion_id: int,
     db: Session = Depends(get_db)
 ):
-    return PublicacionService.obtener_publicacion_por_id(db, publicacion_id)
+    return TwattService.obtener_publicacion_por_id(db, publicacion_id)
 
 @router.delete("/{publicacion_id}")
 def eliminar_twatt(
@@ -71,7 +72,7 @@ def eliminar_twatt(
         id_usuario = user_data["user_id"]
 
         # Eliminar publicación
-        PublicacionService.eliminar_publicacion(db, publicacion_id, id_usuario)
+        TwattService.eliminar_publicacion(db, publicacion_id, id_usuario)
 
         return {"message": "Publicación eliminada exitosamente"}
 

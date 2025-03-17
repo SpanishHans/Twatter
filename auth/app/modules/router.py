@@ -1,41 +1,45 @@
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi import Response
-from sqlalchemy.orm import Session
 
-from modules.models import User_On_DB
-from modules.db_engine import get_db
-from modules.schemas import UsuarioNuevo, UsuarioLogin
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from shared.models.user import User_on_db
+from shared.db.db_engine import get_db
+
+from modules.schemas import NewUser, UserLogin
 from modules.auth_service import AuthService
-
 
 router = APIRouter(tags=["Autenticación"])
 
-
-
-
 @router.post("/registro")
-def register(user_data: UsuarioNuevo, db: Session = Depends(get_db)):
-    # Check if username or email already exists
-    if db.query(User_On_DB).filter_by(nombre_usuario=user_data.nombre_usuario).first():
+async def register(
+    user_api: NewUser,
+    db: AsyncSession = Depends(get_db)):
+    
+    result_username = await db.execute(select(User_on_db).where(User_on_db.username == user_api.username))
+    existing_user = result_username.scalar_one_or_none()
+    if existing_user:
         raise HTTPException(status_code=400, detail="Usuario ya existe")
-    if db.query(User_On_DB).filter_by(correo=user_data.correo).first():
+
+    result_email = await db.execute(select(User_on_db).where(User_on_db.email == user_api.email))
+    existing_email = result_email.scalar_one_or_none()
+    if existing_email:
         raise HTTPException(status_code=400, detail="Correo ya usado")
     
-    # Hash password
-    hashed_password = AuthService.hash_password(user_data.contrasena.get_secret_value())
+    hashed_password = AuthService.hash_password(user_api.password.get_secret_value())
 
-    # Create new user
-    new_user = User_On_DB(
-        nombre_usuario=user_data.nombre_usuario,
-        correo=user_data.correo,
-        contrasena_hash=hashed_password,
-        foto_perfil=user_data.foto_perfil,
-        biografia=user_data.biografia
+    new_user = User_on_db(
+        username=user_api.username,
+        email=user_api.email,
+        password_hash=hashed_password,
+        profile_picture=user_api.profile_picture,
+        biography=user_api.biography
     )
 
     db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
+    await db.commit()
+    await db.refresh(new_user)
 
     return {"message": "Registro correcto"}
 
@@ -44,17 +48,21 @@ def register(user_data: UsuarioNuevo, db: Session = Depends(get_db)):
 
 
 @router.post("/login")
-def login(user_data: UsuarioLogin, response: Response, db: Session = Depends(get_db)):
-    # Get user by username
-    user = db.query(User_On_DB).filter_by(nombre_usuario=user_data.nombre_usuario).first()
-    
-    if not user or not AuthService.verify_password(user_data.contrasena.get_secret_value(), user.contrasena_hash):
+async def login(
+    user_api: UserLogin,
+    response: Response,
+    db: AsyncSession = Depends(get_db)):
+
+    result = await db.execute(
+        select(User_on_db).where(User_on_db.username == user_api.username)
+    )
+    user = result.scalar_one_or_none()
+
+    if not user or not AuthService.verify_password(user_api.password.get_secret_value(), user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    # Generate JWT token
-    token = AuthService.generate_token(user.id, user.nombre_usuario)
+    token = AuthService.generate_token(user.id, user.username)
 
-    # Set HTTP-only cookie
     response.set_cookie(
         key="access_token",
         value=token,
@@ -65,6 +73,20 @@ def login(user_data: UsuarioLogin, response: Response, db: Session = Depends(get
     )
 
     return {"message": "Login correcto"}
+
+
+
+
+
+
+from fastapi import Request
+from fastapi.responses import JSONResponse
+
+@router.get("/verify-token")
+async def verify_token_endpoint(request: Request):
+    token = AuthService.extract_token_from_request(request)
+    user = AuthService.verify_token(token)
+    return JSONResponse(content=user)
 
 
 

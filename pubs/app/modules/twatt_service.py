@@ -2,9 +2,10 @@ import requests
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from fastapi import HTTPException
-from modules.models import Publicacion, ArchivoMultimedia
 
-class PublicacionService:
+from shared.models.twatt import Twatt, Media
+
+class TwattService:
     @staticmethod
     def crear_publicacion(
         db: Session, 
@@ -13,9 +14,9 @@ class PublicacionService:
         es_recomparte: bool = False, 
         id_publicacion_original: Optional[int] = None,
         archivos_multimedia: Optional[List[dict]] = None
-    ) -> Publicacion:
+    ) -> Twatt:
         # Validar usuario con servicio de autenticación (simulado)
-        nueva_publicacion = Publicacion(
+        nueva_publicacion = Twatt(
             id_usuario=id_usuario,
             contenido=contenido,
             es_recomparte=es_recomparte,
@@ -28,7 +29,7 @@ class PublicacionService:
         # Agregar archivos multimedia si existen
         if archivos_multimedia:
             for archivo in archivos_multimedia:
-                multimedia = ArchivoMultimedia(
+                multimedia = Media(
                     id_publicacion=nueva_publicacion.id,
                     tipo_medio=archivo['tipo_medio'],
                     url_medio=archivo['url_medio']
@@ -45,15 +46,15 @@ class PublicacionService:
         db: Session, 
         skip: int = 0, 
         limit: int = 100
-    ) -> List[Publicacion]:
-        return db.query(Publicacion).offset(skip).limit(limit).all()
+    ) -> List[Twatt]:
+        return db.query(Twatt).offset(skip).limit(limit).all()
 
     @staticmethod
     def obtener_publicacion_por_id(
         db: Session, 
         publicacion_id: int
-    ) -> Optional[Publicacion]:
-        publicacion = db.query(Publicacion).filter(Publicacion.id == publicacion_id).first()
+    ) -> Optional[Twatt]:
+        publicacion = db.query(Twatt).filter(Twatt.id == publicacion_id).first()
         if not publicacion:
             raise HTTPException(status_code=404, detail="Publicación no encontrada")
         return publicacion
@@ -64,9 +65,9 @@ class PublicacionService:
         publicacion_id: int, 
         id_usuario: int
     ) -> bool:
-        publicacion = db.query(Publicacion).filter(
-            Publicacion.id == publicacion_id, 
-            Publicacion.id_usuario == id_usuario
+        publicacion = db.query(Twatt).filter(
+            Twatt.id == publicacion_id, 
+            Twatt.id_usuario == id_usuario
         ).first()
         
         if not publicacion:

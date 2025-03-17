@@ -3,6 +3,6 @@ pydantic[email]
 SQLAlchemy
 uvicorn
 requests
-psycopg2
 python-jose
 passlib[bcrypt]
+asyncpg

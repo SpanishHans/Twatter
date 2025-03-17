@@ -1,17 +1,31 @@
 from pydantic import BaseModel, Field, EmailStr, SecretStr
 from typing import Optional
 
-class UsuarioBase(BaseModel):
-    correo: EmailStr = Field(json_schema_extra={'examples': ['juan@example.com']})
-    foto_perfil: Optional[str] = Field(None, json_schema_extra={'examples': ['https://example.com/profile.jpg']})
-    biografia: Optional[str] = Field(None, json_schema_extra={'examples': ['Apasionado por la tecnología y la innovación.']})
+class UserBase(BaseModel):
+    email: EmailStr = Field(
+        json_schema_extra={'examples': ['juan@example.com']}
+    )
+    profile_picture: Optional[str] = Field(
+        None, json_schema_extra={'examples': ['https://example.com/profile.jpg']}
+    )
+    biography: Optional[str] = Field(
+        None, json_schema_extra={'examples': ['Passionate about technology and innovation.']}
+    )
 
-class UsuarioCredenciales(BaseModel):
-    nombre_usuario: str = Field(min_length=3, max_length=30, json_schema_extra={'examples': ['juanjo23']})
-    contrasena: SecretStr = Field(min_length=3, max_length=30, json_schema_extra={'examples': ['SecureP@ssw0rd']})
+class UserCredentials(BaseModel):
+    username: str = Field(
+        min_length=3,
+        max_length=30,
+        json_schema_extra={'examples': ['juanjo23']}
+    )
+    password: SecretStr = Field(
+        min_length=3,
+        max_length=30,
+        json_schema_extra={'examples': ['SecureP@ssw0rd']}
+    )
 
-class UsuarioNuevo(UsuarioBase, UsuarioCredenciales):
+class NewUser(UserBase, UserCredentials):
     pass
 
-class UsuarioLogin(UsuarioCredenciales):
+class UserLogin(UserCredentials):
     pass

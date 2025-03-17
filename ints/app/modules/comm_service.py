@@ -1,12 +1,12 @@
 from sqlalchemy.orm import Session
 from typing import List
 
-from modules.models import Comentario
+from shared.models.comment import Comment
 
-class ComentarioService:
+class CommentService:
     @staticmethod
-    def crear_comentario(db: Session, id_usuario: int, id_publicacion: int, contenido: str) -> Comentario:
-        nuevo_comentario = Comentario(
+    def crear_comentario(db: Session, id_usuario: int, id_publicacion: int, contenido: str) -> Comment:
+        nuevo_comentario = Comment(
             id_usuario=id_usuario,
             id_publicacion=id_publicacion,
             contenido=contenido
@@ -20,9 +20,9 @@ class ComentarioService:
 
     @staticmethod
     def eliminar_comentario(db: Session, id_comentario: int, id_usuario: int) -> bool:
-        comentario = db.query(Comentario).filter(
-            Comentario.id == id_comentario,
-            Comentario.id_usuario == id_usuario
+        comentario = db.query(Comment).filter(
+            Comment.id == id_comentario,
+            Comment.id_usuario == id_usuario
         ).first()
         
         if comentario:
@@ -32,5 +32,5 @@ class ComentarioService:
         return False
 
     @staticmethod
-    def obtener_comentarios_publicacion(db: Session, id_publicacion: int) -> List[Comentario]:
-        return db.query(Comentario).filter(Comentario.id_publicacion == id_publicacion).all()
+    def obtener_comentarios_publicacion(db: Session, id_publicacion: int) -> List[Comment]:
+        return db.query(Comment).filter(Comment.id_publicacion == id_publicacion).all()

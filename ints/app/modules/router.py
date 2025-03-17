@@ -3,11 +3,13 @@ from sqlalchemy.orm import Session
 
 import requests
 
-from modules.db_engine import get_db
-from modules.schema_like import LikeService
-from modules.schema_comm import ComentarioService
+from shared.db.db_engine import get_db
+from shared.auth.auth import get_current_user
+
+from modules.like_service import LikeService
+from modules.comm_service import CommentService
 from modules.schemas import LikeTwatt, Comment_Twatt, LikeRespuesta, ComentarioRespuesta
-from modules.auth import get_current_user
+
 
 router = APIRouter(tags=["Interacciones"])
 
@@ -62,7 +64,7 @@ def crear_comentario(
     user_data = get_current_user(request)
     id_usuario = user_data["user_id"]
     
-    nuevo_comentario = ComentarioService.crear_comentario(
+    nuevo_comentario = CommentService.crear_comentario(
         db, 
         id_usuario, 
         comentario.id_publicacion, 
@@ -80,7 +82,7 @@ def eliminar_comentario(
     user_data = get_current_user(request)
     id_usuario = user_data["user_id"]
     
-    if not ComentarioService.eliminar_comentario(db, id_comentario, id_usuario):
+    if not CommentService.eliminar_comentario(db, id_comentario, id_usuario):
         raise HTTPException(status_code=404, detail="Comentario no encontrado")
     
     return {"message": "Comentario eliminado"}
@@ -90,4 +92,4 @@ def obtener_comentarios(
     id_publicacion: int, 
     db: Session = Depends(get_db)
 ):
-    return ComentarioService.obtener_comentarios_publicacion(db, id_publicacion)
+    return CommentService.obtener_comentarios_publicacion(db, id_publicacion)
