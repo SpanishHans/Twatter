@@ -1,29 +1,31 @@
-import requests
-from fastapi import HTTPException, Request
+import os
+from fastapi import Request, HTTPException
+from jose import jwt
+from jose.exceptions import JWTError, ExpiredSignatureError
 
-AUTH_SERVICE_URL = "http://auth:8000/verificar-token"
+SECRET_KEY = os.getenv("SECRET_KEY", "supersecret")  # Same as in auth container
+ALGORITHM = os.getenv("ALGORITHM", "HS256")
 
-def get_current_user(request: Request):
-    """Calls external auth service to verify user based on cookies."""
-    cookies = request.cookies
+def decode_token(token: str, expected_type: str = "access"):
     try:
-        response = requests.get(AUTH_SERVICE_URL, cookies=cookies, timeout=3)
-        response.raise_for_status()
-    except requests.RequestException:
-        raise HTTPException(status_code=503, detail="Auth service unavailable")
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        token_type = payload.get("token_type")
+        if token_type != expected_type:
+            raise HTTPException(status_code=401, detail=f"Invalid token type: expected '{expected_type}', got '{token_type}'")
 
-    if response.status_code != 200:
-        raise HTTPException(status_code=401, detail="User is not logged in")
+        return {
+            "user_id": int(payload["sub"]),
+            "username": payload["username"]
+        }
+    except ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expired")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
 
-    user_data = response.json()
+async def get_current_user(request: Request):
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Authorization header missing or malformed")
 
-    if "user_id" not in user_data:
-        raise HTTPException(status_code=401, detail="Authentication failed: User ID missing")
-
-    # Ensure user_id is an integer, even if it's a string
-    try:
-        user_data["user_id"] = int(user_data["user_id"])
-    except ValueError:
-        raise HTTPException(status_code=401, detail="Authentication failed: Invalid User ID")
-
-    return user_data
+    token = auth_header[len("Bearer "):].strip()
+    return decode_token(token, expected_type="access")
