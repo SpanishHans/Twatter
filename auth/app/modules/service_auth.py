@@ -1,12 +1,14 @@
+import os
 from datetime import datetime, timedelta
 from passlib.context import CryptContext
-from fastapi import Request, HTTPException
 from jose import jwt
+import uuid
+from uuid import UUID
 
 # Configuración de seguridad
-SECRET_KEY = "your_secret_key"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+SECRET_KEY = os.getenv("SECRET_KEY", "supersecret")  # Same as in auth container
+ALGORITHM = os.getenv("ALGORITHM", "HS256")
+ACCESS_TOKEN_EXPIRE_MINUTES = 15
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -17,45 +19,37 @@ class AuthService:
         return pwd_context.hash(password)
 
     @staticmethod
-    def verify_password(password: str, hashed_password: str) -> bool:
+    def verify_password(hashed_password: str, password: str) -> bool:
         """Verifies a hashed password"""
         return pwd_context.verify(password, hashed_password)
-
+    
     @staticmethod
-    def generate_token(id: int, username: str):
-        """Generates JWT access token with user ID and username"""
-        expira = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-        payload = {
+    def generate_tokens(id: UUID, username: str):
+        """Generates both Access and Refresh JWT tokens"""
+        now = datetime.utcnow()
+        access_expires = now + timedelta(minutes=15)
+        refresh_expires = now + timedelta(days=7)
+    
+        jti = str(uuid.uuid4())  # Unique ID for refresh token
+    
+        access_payload = {
             "sub": str(id),
             "username": username,
-            "exp": expira,
-            "iat": datetime.utcnow(),  # Issued at
+            "exp": access_expires,
+            "iat": now,
             "token_type": "access"
         }
-        return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
-
-    @staticmethod
-    def extract_token_from_request(request: Request) -> str:
-        """Extracts JWT token from cookies."""
-        token = request.cookies.get("access_token")
-        if not token:
-            raise HTTPException(status_code=401, detail="Token missing")
-        return token
     
-    @staticmethod
-    def verify_token(token: str) -> dict:
-        """Verifies JWT token and returns payload."""
-        try:
-            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-            user_id = payload.get("sub")
-            username = payload.get("username")
+        refresh_payload = {
+            "sub": str(id),
+            "username": username,
+            "exp": refresh_expires,
+            "iat": now,
+            "jti": jti,
+            "token_type": "refresh"
+        }
     
-            if not user_id or not username:
-                raise HTTPException(status_code=401, detail="Invalid token structure")
+        access_token = jwt.encode(access_payload, SECRET_KEY, algorithm=ALGORITHM)
+        refresh_token = jwt.encode(refresh_payload, SECRET_KEY, algorithm=ALGORITHM)
     
-            return {"user_id": user_id, "username": username}
-    
-        except jwt.ExpiredSignatureError:
-            raise HTTPException(status_code=401, detail="Token expired")
-        except jwt.InvalidTokenError:
-            raise HTTPException(status_code=401, detail="Invalid token")
+        return access_token, refresh_token

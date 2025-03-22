@@ -3,6 +3,7 @@ import os
 
 from modules.router import router
 from shared.db.db_engine import init_db
+from shared.middleware.csp import CSPMiddleware
 
 VERSION = os.getenv("VERSION", "1.0.0")
 
@@ -11,6 +12,7 @@ app = FastAPI(
     description="API para gestión de usuarios y autenticación",
     version=VERSION
 )
+# app.add_middleware(CSPMiddleware)
 
 @app.on_event("startup")
 async def startup():
