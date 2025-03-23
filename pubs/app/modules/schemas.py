@@ -1,25 +1,37 @@
 from pydantic import BaseModel, Field
 from typing import Optional, List
-from datetime import datetime
+from uuid import UUID
 
-class ArchivoMultimediaBase(BaseModel):
-    tipo_medio: str = Field(json_schema_extra={'examples': ['tipo'],})
-    url_medio: str = Field(json_schema_extra={'examples': ['https://ubicacion/file.example'],})
 
-class TwattBase(BaseModel):
-    contenido: str = Field(json_schema_extra={'examples': ['https://ubicacion/file.example'],})
-    es_recomparte: Optional[bool] = Field(default=False, json_schema_extra={'examples': ['False'],})
-    id_publicacion_original: Optional[int] = Field(default=None, json_schema_extra={'examples': ['123'],})
+from shared.models.twatt import TwattType
 
-class PublicacionCrear(TwattBase):
-    archivos_multimedia: Optional[List[ArchivoMultimediaBase]] = Field(default=None, json_schema_extra={'examples': ['123','123'],})
+class MediaIO(BaseModel):
+    id: UUID = Field(..., examples=[UUID("11266cf0-14a1-48f6-9f9c-d6afd17b0555")])
+    media_type: str = Field(..., examples=["image/png", "image/jpeg", "video/mp4"])
 
-class PublicacionRespuesta(TwattBase):
-    id: int = Field(json_schema_extra={'examples': ['123'],})
-    id_usuario: int = Field(json_schema_extra={'examples': ['123'],})
-    fecha_creacion: datetime
-    archivos_multimedia: Optional[List[ArchivoMultimediaBase]] = Field(default=None, json_schema_extra={'examples': ['123','123'],})
+    class Config:
+        from_attributes = True
 
-    model_config = {
-        "from_attributes": True
-    }
+
+
+
+
+class TwattCreate(BaseModel):
+    content: Optional[str] = Field(None, max_length=280, examples=["This is a twatt."])
+    parent_twatt_id: Optional[UUID] = Field(None, examples=["123e4567-e89b-12d3-a456-426614174000"])
+    twatt_type: TwattType = Field(..., examples=["original"])
+    media_ids: Optional[List[UUID]] = Field(default_factory=list, examples=[["d290f1ee-6c54-4b01-90e6-d701748f0851"]])
+    
+class TwattUpdate(BaseModel):
+    content: Optional[str] = Field(None, max_length=280, examples=["This is a twatt."])
+    media_ids: Optional[List[UUID]] = Field(default_factory=list, examples=[["d290f1ee-6c54-4b01-90e6-d701748f0851"]])
+
+class TwattRead(BaseModel):
+    id: UUID
+    content: Optional[str]
+    twatt_type: TwattType
+    user_id: UUID
+    media_files: List[MediaIO] = []
+
+    class Config:
+        from_attributes = True

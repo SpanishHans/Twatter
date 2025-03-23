@@ -1,11 +1,14 @@
+from typing import TYPE_CHECKING
 import uuid
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import func
 from datetime import datetime
 from typing import Optional
 
 from shared.models.base import Base
+if TYPE_CHECKING:
+    from shared.models.twatt import Twatt
 
 class User_on_db(Base):
     __tablename__ = "users"
@@ -41,3 +44,4 @@ class User_on_db(Base):
         onupdate=func.now(),
         nullable=False
     )
+    twatts: Mapped[list["Twatt"]] = relationship(back_populates="user")

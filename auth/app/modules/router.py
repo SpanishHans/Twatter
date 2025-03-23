@@ -6,6 +6,7 @@ from fastapi import APIRouter, HTTPException, Depends, Response, Request
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import SQLAlchemyError
 
 from shared.models.user import User_on_db
 from shared.db.db_engine import get_db
@@ -23,32 +24,36 @@ async def register(
     user_on_api: RegisterUser,
     db: AsyncSession = Depends(get_db)
 ):
+    try:
+        result_username = await db.execute(select(User_on_db).where(User_on_db.username == user_on_api.username))
+        existing_user = result_username.scalar_one_or_none()
+        if existing_user:
+            raise HTTPException(status_code=400, detail="Usuario ya existe")
     
-    result_username = await db.execute(select(User_on_db).where(User_on_db.username == user_on_api.username))
-    existing_user = result_username.scalar_one_or_none()
-    if existing_user:
-        raise HTTPException(status_code=400, detail="Usuario ya existe")
-
-    result_email = await db.execute(select(User_on_db).where(User_on_db.email == user_on_api.email))
-    existing_email = result_email.scalar_one_or_none()
-    if existing_email:
-        raise HTTPException(status_code=400, detail="Correo ya usado")
+        result_email = await db.execute(select(User_on_db).where(User_on_db.email == user_on_api.email))
+        existing_email = result_email.scalar_one_or_none()
+        if existing_email:
+            raise HTTPException(status_code=400, detail="Correo ya usado")
+        
+        hashed_password = AuthService.hash_password(user_on_api.password.get_secret_value())
     
-    hashed_password = AuthService.hash_password(user_on_api.password.get_secret_value())
-
-    new_user = User_on_db(
-        username=user_on_api.username,
-        email=user_on_api.email,
-        password_hash=hashed_password,
-        profile_picture=None,
-        biography=None
-    )
-
-    db.add(new_user)
-    await db.commit()
-    await db.refresh(new_user)
-
-    return {"message": "Registro correcto"}
+        new_user = User_on_db(
+            username=user_on_api.username,
+            email=user_on_api.email,
+            password_hash=hashed_password,
+            profile_picture=None,
+            biography=None
+        )
+    
+        db.add(new_user)
+        await db.commit()
+        await db.refresh(new_user)
+    
+        return {"message": "Registro correcto"}
+        
+    except SQLAlchemyError as e:
+            await db.rollback()
+            raise HTTPException(status_code=500, detail=f"Database error occurred: {e}")
 
 
 

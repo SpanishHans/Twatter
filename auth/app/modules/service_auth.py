@@ -8,7 +8,7 @@ from uuid import UUID
 # Configuración de seguridad
 SECRET_KEY = os.getenv("SECRET_KEY", "supersecret")  # Same as in auth container
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
-ACCESS_TOKEN_EXPIRE_MINUTES = 15
+ACCESS_TOKEN_EXPIRE_MINUTES = 1500
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -27,7 +27,7 @@ class AuthService:
     def generate_tokens(id: UUID, username: str):
         """Generates both Access and Refresh JWT tokens"""
         now = datetime.utcnow()
-        access_expires = now + timedelta(minutes=15)
+        access_expires = now + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         refresh_expires = now + timedelta(days=7)
     
         jti = str(uuid.uuid4())  # Unique ID for refresh token
