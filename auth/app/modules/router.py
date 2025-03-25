@@ -49,7 +49,12 @@ async def register(
         await db.commit()
         await db.refresh(new_user)
     
-        return {"message": "Registro correcto"}
+        return {
+            "message": "Registro correcto",
+            "user_id": new_user.id,
+            "username": new_user.username,
+            "email": new_user.email
+        }
         
     except SQLAlchemyError as e:
             await db.rollback()
