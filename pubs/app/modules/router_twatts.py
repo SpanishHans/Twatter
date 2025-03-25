@@ -142,7 +142,7 @@ async def get_twatt_with_media(
 
 
 @router.get("/twatts", response_model=List[TwattRead])
-async def get_suggested_twats(
+async def get_suggested_twatts(
     session: AsyncSession = Depends(get_db),
     current_user: CurrentUser = Depends(get_current_user)
 ):
@@ -296,4 +296,4 @@ async def delete_twatt(
     await session.delete(twatt)
     await session.commit()
 
-    return  
+    return
