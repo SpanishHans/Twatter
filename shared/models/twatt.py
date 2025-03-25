@@ -10,6 +10,9 @@ from sqlalchemy import Text, DateTime, ForeignKey, func, Integer, Enum as PgEnum
 from shared.models.base import Base
 if TYPE_CHECKING:
     from shared.models.user import User_on_db
+    from shared.models.like import Like
+
+
 
 
 
@@ -18,7 +21,8 @@ if TYPE_CHECKING:
 class TwattType(str, Enum):
     ORIGINAL = "original"
     REPLY = "reply"
-    RETWEET = "retweet"  # quotes y retweets
+    RETWEET = "retweet"
+    QUOTE = "quote"
 
 class Twatt(Base):
     __tablename__ = "twatts"
@@ -44,7 +48,7 @@ class Twatt(Base):
     )
 
     #OPCIONAL
-    content: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # Nullable for pure retweets
+    content: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     #OPCIONAL
     parent_twatt_id: Mapped[Optional[uuid.UUID]] = mapped_column(
         UUID(as_uuid=True),
@@ -67,6 +71,13 @@ class Twatt(Base):
     parent_twatt: Mapped[Optional["Twatt"]] = relationship(
         "Twatt", remote_side=[id], backref="replies"
     )
+    likes: Mapped[List["Like"]] = relationship("Like", back_populates="twatt")
+
+
+
+
+
+
 
 class Media(Base):
     __tablename__ = "media_files"
@@ -78,9 +89,13 @@ class Media(Base):
     )
     twatt_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), 
-        ForeignKey("twatts.id", ondelete="CASCADE"),
-        unique=True,
+        ForeignKey("twatts.id", ondelete="SET NULL"),
         nullable=True
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -89,4 +104,5 @@ class Media(Base):
     
     media_type: Mapped[str] = mapped_column(nullable=False)
 
-    twatt: Mapped["Twatt"] = relationship(back_populates="media_files")
+    user: Mapped["User_on_db"] = relationship("User_on_db", back_populates="media_files")
+    twatt: Mapped["Twatt"] = relationship("Twatt", back_populates="media_files")

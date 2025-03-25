@@ -4,11 +4,12 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import func
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 from shared.models.base import Base
 if TYPE_CHECKING:
-    from shared.models.twatt import Twatt
+    from shared.models.twatt import Twatt, Media
+    from shared.models.like import Like
 
 class User_on_db(Base):
     __tablename__ = "users"
@@ -44,4 +45,6 @@ class User_on_db(Base):
         onupdate=func.now(),
         nullable=False
     )
-    twatts: Mapped[list["Twatt"]] = relationship(back_populates="user")
+    twatts: Mapped[List["Twatt"]] = relationship("Twatt", back_populates="user")
+    likes: Mapped[List["Like"]] = relationship("Like", back_populates="user")
+    media_files: Mapped[List["Media"]] = relationship("Media", back_populates="user", cascade="all, delete-orphan")

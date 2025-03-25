@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 import os
 
-from modules.router import router
+from modules.router_media import router as r_media
+from modules.router_twatts import router as r_twatts
 from shared.db.db_engine import init_db
 
 VERSION = os.getenv("VERSION", "1.0.0")
@@ -21,4 +22,5 @@ async def api_welcome():
     return {"message": "Hello, bienvenido a twatter pubs!"}
 
 # Register your API routes
-app.include_router(router)
+app.include_router(r_media)
+app.include_router(r_twatts)

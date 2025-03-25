@@ -1,5 +1,7 @@
 import mimetypes
+from functools import lru_cache
 
+@lru_cache
 def get_file_extension(media_type: str) -> str:
     # Use the mimetypes module to get the file extension from the media_type
     extension = mimetypes.guess_extension(media_type)

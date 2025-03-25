@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 import os
 
-from modules.router import router
+from modules.router_likes import router as r_likes
+from modules.router_bookmarks import router as r_bookmarks
 from shared.db.db_engine import init_db
 
 VERSION = os.getenv("VERSION", "1.0.0")
@@ -21,4 +22,5 @@ async def api_welcome():
     return {"message": "Hello, bienvenido a twatter ints!"}
 
 # Register your API routes
-app.include_router(router)
+app.include_router(r_likes)
+app.include_router(r_bookmarks)

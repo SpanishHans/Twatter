@@ -12,7 +12,8 @@ services:
     networks:
       - app_net
     depends_on:
-      - auth
+      - pubs
+      - ints
 
   auth:
     build:
@@ -27,8 +28,6 @@ services:
       - app_net
     ports:
       - "${AUTH_PORT}:8000"
-    environment:
-      DATABASE_URL: "postgresql+asyncpg://${DB_USER}:${DB_PASS}@db:5432/${DB_NAME}"
     depends_on:
       db:
         condition: service_healthy
@@ -46,8 +45,6 @@ services:
       - app_net
     ports:
       - "${PUBS_PORT}:8000"
-    environment:
-      DATABASE_URL: "postgresql+asyncpg://${DB_USER}:${DB_PASS}@db:5432/${DB_NAME}"
     depends_on:
       - auth
     volumes:
@@ -66,8 +63,6 @@ services:
       - app_net
     ports:
       - "${INTS_PORT}:8000"
-    environment:
-      DATABASE_URL: "postgresql+asyncpg://${DB_USER}:${DB_PASS}@db:5432/${DB_NAME}"
     depends_on:
       - auth
 
